@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-const API_URL = 'https://api.anthropic.com/v1/messages'
 const MODEL = 'claude-sonnet-4-20250514'
 const STORAGE_KEY = 'acc_api_key'
 
@@ -31,25 +30,56 @@ export function useAI() {
     setResult('')
     setError('')
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          max_tokens: 1500,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      })
+      let res
+      try {
+        res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            max_tokens: 1500,
+            messages: [{ role: 'user', content: prompt }],
+          }),
+        })
+      } catch (fetchErr) {
+        if (fetchErr instanceof TypeError) {
+          throw new Error(
+            'Unable to reach the server. Please check your internet connection and try again.'
+          )
+        }
+        throw fetchErr
+      }
+
       if (!res.ok) {
-        const body = await res.text()
+        let body
+        try {
+          body = await res.text()
+        } catch {
+          body = '(could not read response body)'
+        }
+
+        if (res.status === 401) {
+          throw new Error('Invalid API key. Please check the key you entered and try again.')
+        }
+        if (res.status === 429) {
+          throw new Error('Rate limit exceeded. Please wait a moment and try again.')
+        }
+        if (res.status >= 500) {
+          throw new Error('The AI service is temporarily unavailable. Please try again in a few minutes.')
+        }
         throw new Error(`API error (${res.status}): ${body}`)
       }
-      const data = await res.json()
+
+      let data
+      try {
+        data = await res.json()
+      } catch {
+        throw new Error('Received an invalid response from the AI service. Please try again.')
+      }
+
       const text = data.content?.[0]?.text || 'No response received.'
       setResult(text)
     } catch (err) {
