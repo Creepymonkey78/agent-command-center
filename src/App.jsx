@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import logoImg from './assets/LINDSEY AND ASSOCIATES LETTERING Black.png'
-import { getApiKey, setApiKey } from './useAI.js'
 import ClientComms from './tabs/ClientComms.jsx'
 import OfferAdvisor from './tabs/OfferAdvisor.jsx'
 import ListingAdvisor from './tabs/ListingAdvisor.jsx'
@@ -24,15 +23,7 @@ function useClock() {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('comms')
-  const [apiKey, setKey] = useState(getApiKey)
-  const [showKey, setShowKey] = useState(false)
   const now = useClock()
-
-  function handleKeyChange(e) {
-    const v = e.target.value
-    setKey(v)
-    setApiKey(v)
-  }
 
   const dateStr = now.toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -56,31 +47,6 @@ export default function App() {
           </div>
         </div>
       </header>
-
-      <div className="api-key-bar">
-        <div className="api-key-inner">
-          <label className="api-key-label">API Key</label>
-          <div className="api-key-field">
-            <input
-              type={showKey ? 'text' : 'password'}
-              className="api-key-input"
-              placeholder="sk-ant-..."
-              value={apiKey}
-              onChange={handleKeyChange}
-              spellCheck={false}
-              autoComplete="off"
-            />
-            <button
-              className="api-key-toggle"
-              onClick={() => setShowKey(s => !s)}
-              title={showKey ? 'Hide key' : 'Show key'}
-            >
-              {showKey ? 'Hide' : 'Show'}
-            </button>
-          </div>
-          {apiKey && <span className="api-key-status">Saved to browser</span>}
-        </div>
-      </div>
 
       <nav className="tab-nav">
         <div className="tab-nav-inner">

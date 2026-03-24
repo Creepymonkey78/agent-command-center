@@ -1,19 +1,6 @@
 import { useState } from 'react'
 
 const MODEL = 'claude-sonnet-4-20250514'
-const STORAGE_KEY = 'acc_api_key'
-
-export function getApiKey() {
-  return localStorage.getItem(STORAGE_KEY) || ''
-}
-
-export function setApiKey(key) {
-  if (key) {
-    localStorage.setItem(STORAGE_KEY, key)
-  } else {
-    localStorage.removeItem(STORAGE_KEY)
-  }
-}
 
 export function useAI() {
   const [result, setResult] = useState('')
@@ -21,11 +8,6 @@ export function useAI() {
   const [error, setError] = useState('')
 
   async function generate(prompt) {
-    const apiKey = getApiKey()
-    if (!apiKey) {
-      setError('Please enter your API key in the header bar before generating.')
-      return
-    }
     setLoading(true)
     setResult('')
     setError('')
@@ -36,7 +18,6 @@ export function useAI() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': apiKey,
           },
           body: JSON.stringify({
             model: MODEL,
@@ -62,7 +43,7 @@ export function useAI() {
         }
 
         if (res.status === 401) {
-          throw new Error('Invalid API key. Please check the key you entered and try again.')
+          throw new Error('Invalid API key. Please contact your administrator.')
         }
         if (res.status === 429) {
           throw new Error('Rate limit exceeded. Please wait a moment and try again.')
