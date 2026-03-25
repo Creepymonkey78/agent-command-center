@@ -50,10 +50,7 @@ ADDITIONAL CONTEXT: ${additionalContext.trim() || 'None provided'}
 Provide the following:
 
 OFFER STRATEGY RECOMMENDATION
-[2-3 paragraphs of clear, specific strategic advice. Should this buyer go above asking, at asking, or below? Should they include an escalation clause? What contingencies should they consider waiving or keeping based on their position? What terms might make this offer stand out beyond price? Be direct and specific — this is advice for an experienced agent, not a first-time buyer education piece.]
-
-ESCALATION CLAUSE LANGUAGE (if applicable)
-[If an escalation clause makes sense for this situation, provide specific suggested language the agent can adapt for their offer. Include recommended ceiling price and increment based on the scenario. If an escalation clause is NOT appropriate for this situation, explain why and what to do instead.]${scriptSection}
+[2-3 paragraphs of clear, specific strategic advice. Should this buyer go above asking, at asking, or below? What contingencies should they consider waiving or keeping based on their position? What terms might make this offer stand out beyond price? Be direct and specific — this is advice for an experienced agent, not a first-time buyer education piece.]${scriptSection}
 
 Be specific to this scenario. Reference the actual numbers provided. Write like you're coaching a fellow agent at the office, not lecturing a student.`
 
