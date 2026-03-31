@@ -3,13 +3,13 @@ import logoImg from './assets/LINDSEY AND ASSOCIATES LETTERING Black.png'
 import ClientComms from './tabs/ClientComms.jsx'
 import OfferAdvisor from './tabs/OfferAdvisor.jsx'
 import ListingAdvisor from './tabs/ListingAdvisor.jsx'
-import NetSheet from './tabs/NetSheet.jsx'
+import Calculators from './tabs/Calculators.jsx'
 
 const TABS = [
   { id: 'comms', label: '\u{1F4AC} Client Comms' },
   { id: 'offer', label: '\u{1F3AF} Offer Advisor' },
   { id: 'listing', label: '\u{1F4CB} Listing Advisor' },
-  { id: 'netsheet', label: '\u{1F522} Net Sheet' },
+  { id: 'calculators', label: '\u{1F522} Calculators' },
 ]
 
 function useClock() {
@@ -67,7 +67,7 @@ export default function App() {
           {activeTab === 'comms' && <ClientComms />}
           {activeTab === 'offer' && <OfferAdvisor />}
           {activeTab === 'listing' && <ListingAdvisor />}
-          {activeTab === 'netsheet' && <NetSheet />}
+          {activeTab === 'calculators' && <Calculators />}
         </div>
       </main>
 
