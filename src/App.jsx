@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import logoImg from './assets/Lindsey & Associates, Inc. Fayetteville - Blue.png'
+import logoImg from './assets/Lindsey & Associates, Inc. - Blue, Small.png'
 import ClientComms from './tabs/ClientComms.jsx'
 import OfferAdvisor from './tabs/OfferAdvisor.jsx'
 import ListingAdvisor from './tabs/ListingAdvisor.jsx'
