@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import logoImg from './assets/LINDSEY AND ASSOCIATES LETTERING Black.png'
+import logoImg from './assets/Lindsey & Associates, Inc. Fayetteville - Blue.png'
 import ClientComms from './tabs/ClientComms.jsx'
 import OfferAdvisor from './tabs/OfferAdvisor.jsx'
 import ListingAdvisor from './tabs/ListingAdvisor.jsx'
@@ -37,10 +37,7 @@ export default function App() {
       <header className="app-header">
         <div className="header-inner">
           <div className="header-brand">
-            <div className="header-logo-wrap">
-              <img src={logoImg} alt="Lindsey & Associates, Inc." className="header-logo" />
-              <span className="header-logo-inc">, Inc.</span>
-            </div>
+            <img src={logoImg} alt="Lindsey & Associates, Inc." className="header-logo" />
             <div className="header-title">Agent Command Center</div>
             <div className="header-subtitle">AI-Powered Productivity Suite for Top-Producing Agents</div>
           </div>
