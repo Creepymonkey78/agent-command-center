@@ -83,10 +83,25 @@ h1, h2, h3, h4 {
   align-items: flex-start;
 }
 
+.header-logo-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
 .header-logo {
   height: 48px;
-  margin-bottom: 8px;
   filter: brightness(0) invert(1);
+}
+
+.header-logo-inc {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  padding-bottom: 4px;
+  letter-spacing: 0.5px;
 }
 
 .header-title {
