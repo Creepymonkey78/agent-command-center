@@ -92,7 +92,8 @@ h1, h2, h3, h4 {
 
 .header-logo {
   height: 48px;
-  filter: brightness(0) invert(1);
+  filter: invert(1) grayscale(1) brightness(10);
+  mix-blend-mode: screen;
 }
 
 .header-logo-inc {
