@@ -83,26 +83,30 @@ h1, h2, h3, h4 {
   align-items: flex-start;
 }
 
-.header-logo-wrap {
+.header-wordmark {
   display: flex;
-  align-items: flex-end;
-  gap: 4px;
+  flex-direction: column;
+  align-items: flex-start;
   margin-bottom: 8px;
+  line-height: 1.15;
 }
 
-.header-logo {
-  height: 48px;
-  filter: invert(1) grayscale(1) brightness(10);
-  mix-blend-mode: screen;
+.header-wordmark-name {
+  font-family: var(--font-heading);
+  font-size: 30px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--white);
+  letter-spacing: -0.5px;
 }
 
-.header-logo-inc {
+.header-wordmark-associates {
   font-family: var(--font-heading);
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255,255,255,0.75);
-  padding-bottom: 4px;
-  letter-spacing: 0.5px;
+  font-style: italic;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 0.3px;
 }
 
 .header-title {
