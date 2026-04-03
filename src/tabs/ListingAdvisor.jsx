@@ -89,7 +89,7 @@ SELLER OBJECTION RESPONSES
 
 Write like you're coaching a fellow agent at the office — direct, specific, and practical. No fluff.`
 
-    generate(prompt)
+    generate(prompt, 'Listing Advisor')
   }
 
   return (

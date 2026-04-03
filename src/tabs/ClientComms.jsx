@@ -86,7 +86,7 @@ Under 100 words. Warm and direct. Include next steps or a question. Sign as "—
 
 Sound like a trusted advisor who is on top of every detail of this deal — not a template.`
     }
-    generate(prompt)
+    generate(prompt, 'Client Comms')
   }
 
   return (

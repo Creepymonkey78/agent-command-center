@@ -19,7 +19,7 @@ const COMPETING_OPTIONS = [
   "Unknown — listing agent won't disclose",
 ]
 
-export default function OfferAdvisor() {
+function InitialOfferForm({ onGenerate, loading }) {
   const [listPrice, setListPrice] = useState('')
   const [offerPrice, setOfferPrice] = useState('')
   const [buyerPosition, setBuyerPosition] = useState(BUYER_POSITIONS[1])
@@ -27,7 +27,6 @@ export default function OfferAdvisor() {
   const [sellerMotivation, setSellerMotivation] = useState('')
   const [additionalContext, setAdditionalContext] = useState('')
   const [includeScript, setIncludeScript] = useState(false)
-  const { result, loading, error, generate } = useAI()
 
   function handleGenerate() {
     if (!listPrice) return
@@ -54,11 +53,11 @@ OFFER STRATEGY RECOMMENDATION
 
 Be specific to this scenario. Reference the actual numbers provided. Write like you're coaching a fellow agent at the office, not lecturing a student.`
 
-    generate(prompt)
+    onGenerate(prompt, 'Offer Advisor')
   }
 
   return (
-    <div>
+    <>
       <div className="section-label">Property &amp; Pricing</div>
       <div className="form-grid">
         <div className="form-group">
@@ -152,6 +151,167 @@ Be specific to this scenario. Reference the actual numbers provided. Write like 
       >
         Generate Offer Advice
       </button>
+    </>
+  )
+}
+
+function CounterofferForm({ onGenerate, loading }) {
+  const [originalOffer, setOriginalOffer] = useState('')
+  const [counterPrice, setCounterPrice] = useState('')
+  const [listPrice, setListPrice] = useState('')
+  const [termsChanged, setTermsChanged] = useState('')
+  const [buyerFlexibility, setBuyerFlexibility] = useState('')
+  const [buyerLeverage, setBuyerLeverage] = useState('')
+  const [walkaway, setWalkaway] = useState('')
+
+  function handleGenerate() {
+    if (!counterPrice) return
+
+    const prompt = `You are a top-producing buyer's agent and skilled negotiator with 20 years of experience in residential real estate. A seller has countered your buyer's offer and you need to advise on how to respond.
+
+LIST PRICE: ${listPrice ? '$' + listPrice : 'Not provided'}
+BUYER'S ORIGINAL OFFER: ${originalOffer ? '$' + originalOffer : 'Not provided'}
+SELLER'S COUNTER PRICE: $${counterPrice}
+KEY COUNTEROFFER TERMS CHANGED: ${termsChanged.trim() || 'None specified'}
+BUYER'S MAX PRICE / FLEXIBILITY: ${buyerFlexibility.trim() || 'Not specified'}
+BUYER'S LEVERAGE POINTS: ${buyerLeverage.trim() || 'None specified'}
+WALKAWAY POINT / DEALBREAKERS: ${walkaway.trim() || 'Not specified'}
+
+Provide the following two sections:
+
+RESPONSE STRATEGY
+[2-3 paragraphs analyzing this counteroffer. Is this counter reasonable given the list price and original offer? What is the recommended response approach — accept, counter back, or walk? What specific counter-terms should the agent propose, and why? Consider price, concessions, timeline, and any leverage points. Be direct — this is coaching for an experienced agent.]
+
+PROFESSIONAL RESPONSE LANGUAGE
+[1-2 paragraphs of ready-to-use professional language the agent can adapt when responding to the listing agent — either verbally or in a written response. Should be confident, collaborative in tone, and position the buyer favorably while advancing their interests. Sound like a seasoned agent, not a form letter.]
+
+Be specific to the numbers provided. Reference actual dollar amounts. Write like you're coaching a fellow agent at the office.`
+
+    onGenerate(prompt, 'Counteroffer')
+  }
+
+  return (
+    <>
+      <div className="section-label">Offer Figures</div>
+      <div className="form-grid">
+        <div className="form-group">
+          <label className="form-label">List Price</label>
+          <div className="dollar-input-wrap">
+            <span className="dollar-prefix">$</span>
+            <input
+              className="form-input"
+              type="text"
+              placeholder="350,000"
+              value={listPrice}
+              onChange={e => setListPrice(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Buyer's Original Offer</label>
+          <div className="dollar-input-wrap">
+            <span className="dollar-prefix">$</span>
+            <input
+              className="form-input"
+              type="text"
+              placeholder="330,000"
+              value={originalOffer}
+              onChange={e => setOriginalOffer(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Seller's Counter Price</label>
+          <div className="dollar-input-wrap">
+            <span className="dollar-prefix">$</span>
+            <input
+              className="form-input"
+              type="text"
+              placeholder="345,000"
+              value={counterPrice}
+              onChange={e => setCounterPrice(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="section-label">Counteroffer Details</div>
+      <div className="form-group">
+        <label className="form-label">Key Counteroffer Terms Changed</label>
+        <textarea
+          className="form-textarea"
+          placeholder="e.g. Seller rejected repair credit, moved closing date back 2 weeks, countered at $285k"
+          value={termsChanged}
+          onChange={e => setTermsChanged(e.target.value)}
+        />
+      </div>
+      <div className="form-group">
+        <label className="form-label">Buyer's Max Price / Flexibility</label>
+        <textarea
+          className="form-textarea"
+          placeholder="e.g. Buyer can go to $280k, needs closing credit for rate buydown, flexible on close date"
+          value={buyerFlexibility}
+          onChange={e => setBuyerFlexibility(e.target.value)}
+        />
+      </div>
+      <div className="form-group">
+        <label className="form-label">Buyer's Leverage Points (optional)</label>
+        <textarea
+          className="form-textarea"
+          placeholder="e.g. Pre-approved conventional, flexible on closing date, waived home warranty"
+          value={buyerLeverage}
+          onChange={e => setBuyerLeverage(e.target.value)}
+        />
+      </div>
+      <div className="form-group">
+        <label className="form-label">Walkaway Point / Dealbreakers (optional)</label>
+        <textarea
+          className="form-textarea"
+          placeholder="e.g. Buyer won't go above $282k, must have inspection contingency"
+          value={walkaway}
+          onChange={e => setWalkaway(e.target.value)}
+        />
+      </div>
+
+      <button
+        className="btn-primary"
+        disabled={!counterPrice || loading}
+        onClick={handleGenerate}
+      >
+        Generate Counteroffer Response
+      </button>
+    </>
+  )
+}
+
+export default function OfferAdvisor() {
+  const [mode, setMode] = useState('initial')
+  const { result, loading, error, generate } = useAI()
+
+  return (
+    <div>
+      <div className="form-group">
+        <div className="form-label">Mode</div>
+        <div className="toggle-group">
+          <button
+            className={`toggle-btn${mode === 'initial' ? ' active' : ''}`}
+            onClick={() => setMode('initial')}
+          >
+            Initial Offer Strategy
+          </button>
+          <button
+            className={`toggle-btn${mode === 'counteroffer' ? ' active' : ''}`}
+            onClick={() => setMode('counteroffer')}
+          >
+            Counteroffer Response
+          </button>
+        </div>
+      </div>
+
+      {mode === 'initial'
+        ? <InitialOfferForm onGenerate={generate} loading={loading} />
+        : <CounterofferForm onGenerate={generate} loading={loading} />
+      }
 
       <ResultBox result={result} loading={loading} error={error} />
     </div>

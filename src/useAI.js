@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { trackUsage } from './useTracking.js'
 
 const MODEL = 'claude-sonnet-4-20250514'
 
@@ -7,7 +8,8 @@ export function useAI() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function generate(prompt) {
+  async function generate(prompt, feature = '') {
+    if (feature) trackUsage(feature)
     setLoading(true)
     setResult('')
     setError('')
