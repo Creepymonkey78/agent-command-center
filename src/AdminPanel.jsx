@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { getUsageStats, clearUsageLog } from './useTracking.js'
+import { useState, useEffect, useCallback } from 'react'
 
 const FEATURE_ORDER = [
   'Client Comms',
@@ -25,25 +24,35 @@ function relativeTime(isoString) {
 }
 
 export default function AdminPanel() {
-  const [stats, setStats] = useState(() => getUsageStats())
-  const [cleared, setCleared] = useState(false)
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  function handleRefresh() {
-    setStats(getUsageStats())
-    setCleared(false)
-  }
+  const fetchStats = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/track')
+      if (!res.ok) throw new Error(`Server returned ${res.status}`)
+      const data = await res.json()
+      setStats(data)
+    } catch (err) {
+      setError(err.message || 'Failed to load stats')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  function handleClear() {
-    if (!window.confirm('Clear all usage data? This cannot be undone.')) return
-    clearUsageLog()
-    setStats(getUsageStats())
-    setCleared(true)
-  }
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
-  const allFeatures = [
-    ...FEATURE_ORDER,
-    ...Object.keys(stats.byFeature).filter(f => !FEATURE_ORDER.includes(f)),
-  ]
+  const allFeatures = stats
+    ? [
+        ...FEATURE_ORDER,
+        ...Object.keys(stats.byFeature).filter(f => !FEATURE_ORDER.includes(f)),
+      ]
+    : FEATURE_ORDER
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 24px' }}>
@@ -52,96 +61,114 @@ export default function AdminPanel() {
           Usage Dashboard
         </h2>
         <p style={{ fontSize: 13, color: 'var(--gray-400)' }}>
-          Data stored in this browser's localStorage · Tracking begins from first use
+          Server-side tracking via Upstash Redis · All agents · All devices
         </p>
       </div>
 
-      {/* Top-level stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28 }}>
-        <StatCard label="Total AI Requests" value={fmt(stats.total)} />
-        <StatCard label="Last 30 Days" value={fmt(stats.last30Days)} />
-        <StatCard label="Features Tracked" value={fmt(allFeatures.filter(f => stats.byFeature[f]).length)} />
-      </div>
-
-      {/* By feature — all time */}
-      <div style={{ background: 'var(--white)', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius)', marginBottom: 24 }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--gray-100)' }}>
-          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--gray-400)' }}>
-            Usage by Feature
-          </span>
+      {loading && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '32px 0', color: 'var(--gray-400)', fontSize: 14 }}>
+          <div className="spinner" />
+          Loading stats...
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--gray-100)' }}>
-              <th style={thStyle}>Feature</th>
-              <th style={{ ...thStyle, textAlign: 'right' }}>All Time</th>
-              <th style={{ ...thStyle, textAlign: 'right' }}>Last 30 Days</th>
-              <th style={{ ...thStyle, textAlign: 'right' }}>% of Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allFeatures.map(feature => {
-              const total = stats.byFeature[feature] || 0
-              const recent = stats.byFeatureLast30[feature] || 0
-              const pct = stats.total > 0 ? ((total / stats.total) * 100).toFixed(1) : '0.0'
-              if (total === 0) return null
-              return (
-                <tr key={feature} style={{ borderBottom: '1px solid var(--gray-100)' }}>
-                  <td style={tdStyle}>{feature}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>{fmt(total)}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(recent)}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--gray-400)' }}>{pct}%</td>
-                </tr>
-              )
-            })}
-            {stats.total === 0 && (
-              <tr>
-                <td colSpan={4} style={{ ...tdStyle, textAlign: 'center', color: 'var(--gray-400)', padding: '24px 16px' }}>
-                  No usage recorded yet. Use any AI feature to start tracking.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      )}
 
-      {/* Recent activity */}
-      {stats.recentLog.length > 0 && (
-        <div style={{ background: 'var(--white)', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius)', marginBottom: 24 }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--gray-100)' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--gray-400)' }}>
-              Recent Activity (last 50)
-            </span>
+      {error && (
+        <div style={{ padding: '16px 20px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius)', color: 'var(--red-600)', fontSize: 14, marginBottom: 24 }}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+
+      {stats && !loading && (
+        <>
+          {/* Top-level stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28 }}>
+            <StatCard label="Total AI Requests" value={fmt(stats.total)} />
+            <StatCard label="Last 30 Days" value={fmt(stats.last30Days?.total)} />
+            <StatCard label="Features Active" value={fmt(Object.keys(stats.byFeature).length)} />
           </div>
-          <div style={{ maxHeight: 280, overflowY: 'auto' }}>
-            {stats.recentLog.map((entry, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '8px 20px',
-                  borderBottom: '1px solid var(--gray-100)',
-                  fontSize: 13,
-                }}
-              >
-                <span style={{ color: 'var(--gray-700)', fontWeight: 500 }}>{entry.feature}</span>
-                <span style={{ color: 'var(--gray-400)' }}>
-                  {new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  {' · '}
-                  {relativeTime(entry.timestamp)}
+
+          {/* By feature — all time vs last 30 days */}
+          <div style={{ background: 'var(--white)', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius)', marginBottom: 24 }}>
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--gray-100)' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--gray-400)' }}>
+                Usage by Feature
+              </span>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--gray-100)' }}>
+                  <th style={thStyle}>Feature</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>All Time</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Last 30 Days</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>% of Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allFeatures.map(feature => {
+                  const total = stats.byFeature[feature] || 0
+                  const recent = stats.last30Days?.byFeature?.[feature] || 0
+                  const pct = stats.total > 0 ? ((total / stats.total) * 100).toFixed(1) : '0.0'
+                  if (total === 0) return null
+                  return (
+                    <tr key={feature} style={{ borderBottom: '1px solid var(--gray-100)' }}>
+                      <td style={tdStyle}>{feature}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>{fmt(total)}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(recent)}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--gray-400)' }}>{pct}%</td>
+                    </tr>
+                  )
+                })}
+                {stats.total === 0 && (
+                  <tr>
+                    <td colSpan={4} style={{ ...tdStyle, textAlign: 'center', color: 'var(--gray-400)', padding: '24px 16px' }}>
+                      No usage recorded yet. Use any AI feature to start tracking.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Recent activity */}
+          {stats.recentActivity?.length > 0 && (
+            <div style={{ background: 'var(--white)', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius)', marginBottom: 24 }}>
+              <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--gray-100)' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--gray-400)' }}>
+                  Recent Activity (last 200)
                 </span>
               </div>
-            ))}
-          </div>
-        </div>
+              <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+                {stats.recentActivity.map((entry, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '8px 20px',
+                      borderBottom: '1px solid var(--gray-100)',
+                      fontSize: 13,
+                    }}
+                  >
+                    <span style={{ color: 'var(--gray-700)', fontWeight: 500 }}>{entry.feature}</span>
+                    <span style={{ color: 'var(--gray-400)' }}>
+                      {new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {' · '}
+                      {relativeTime(entry.timestamp)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Actions */}
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <button
-          onClick={handleRefresh}
+          onClick={fetchStats}
+          disabled={loading}
           style={{
             fontFamily: 'var(--font-body)',
             fontSize: 13,
@@ -151,30 +178,12 @@ export default function AdminPanel() {
             color: 'var(--white)',
             border: 'none',
             borderRadius: 'var(--radius)',
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.6 : 1,
           }}
         >
-          Refresh
+          {loading ? 'Loading...' : 'Refresh'}
         </button>
-        <button
-          onClick={handleClear}
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 13,
-            fontWeight: 600,
-            padding: '8px 18px',
-            background: 'var(--white)',
-            color: 'var(--red-600)',
-            border: '1px solid var(--gray-300)',
-            borderRadius: 'var(--radius)',
-            cursor: 'pointer',
-          }}
-        >
-          Clear All Data
-        </button>
-        {cleared && (
-          <span style={{ fontSize: 13, color: 'var(--green-600)', fontWeight: 500 }}>Cleared.</span>
-        )}
       </div>
 
       <div style={{ marginTop: 32, fontSize: 11, color: 'var(--gray-300)' }}>
