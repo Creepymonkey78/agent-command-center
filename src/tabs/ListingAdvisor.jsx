@@ -44,7 +44,7 @@ export default function ListingAdvisor() {
   const [sellerExp, setSellerExp] = useState(SELLER_EXPECTATIONS[0])
   const [challenges, setChallenges] = useState([])
   const [notes, setNotes] = useState('')
-  const { result, loading, error, generate } = useAI()
+  const { result, loading, error, generate, regenerate, generationId } = useAI()
 
   function toggleChallenge(c) {
     if (c === 'No major challenges') {
@@ -187,7 +187,7 @@ Write like you're coaching a fellow agent at the office — direct, specific, an
         Generate Listing Advice
       </button>
 
-      <ResultBox result={result} loading={loading} error={error} />
+      <ResultBox result={result} loading={loading} error={error} generationId={generationId} onRetone={regenerate} />
     </div>
   )
 }

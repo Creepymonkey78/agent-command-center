@@ -2,6 +2,14 @@ import { useState } from 'react'
 import { useAI } from '../useAI.js'
 import ResultBox from '../ResultBox.jsx'
 
+const OPEN_HOUSE_ITEMS = [
+  'Hot lead (requested showing / very engaged)',
+  'Warm lead (interested but not urgent)',
+  'Neighbor / just curious',
+  'Out-of-town buyer',
+  'General follow-up (unclassified)',
+]
+
 const MILESTONES = [
   {
     stage: 'Pre-Contract',
@@ -14,6 +22,11 @@ const MILESTONES = [
       'Open house follow-up',
       'Listing presentation follow-up',
     ],
+  },
+  {
+    stage: 'Open House',
+    className: 'open-house',
+    items: OPEN_HOUSE_ITEMS,
   },
   {
     stage: 'Under Contract',
@@ -50,12 +63,60 @@ const MILESTONES = [
   },
 ]
 
+function buildOpenHousePrompt(channel, milestone, name, ctx) {
+  const channelLabel = channel === 'email' ? 'Email' : 'Text Message'
+
+  const leadGuidance = {
+    'Hot lead (requested showing / very engaged)':
+      'This is a hot lead who expressed strong interest at the open house and requested a showing or was very engaged. Write with urgency — reference their excitement, lock in the next step (scheduling a private showing), and make it easy for them to say yes.',
+    'Warm lead (interested but not urgent)':
+      'This is a warm lead who showed genuine interest but didn\'t seem to be in a rush. Keep the tone friendly and low-pressure. Offer to answer questions, share more info about the property, and invite them to a private showing without pushing.',
+    'Neighbor / just curious':
+      'This person stopped by as a neighbor or just out of curiosity — they\'re probably not buying, but they know people who might be. Take a warm, community-focused angle: thank them for stopping by, mention the home\'s highlights that might interest their network, and offer to keep them posted on the local market.',
+    'Out-of-town buyer':
+      'This buyer is relocating or purchasing remotely. They need extra reassurance. Address the remote process directly — offer a virtual tour, explain how you can guide them through the process from afar, and emphasize your local expertise in Northwest Arkansas.',
+    'General follow-up (unclassified)':
+      'This is a general follow-up for a lead whose engagement level was unclear. Keep it warm and open-ended — thank them for attending, highlight a key feature of the property, and invite any questions or a follow-up conversation.',
+  }
+
+  const guidance = leadGuidance[milestone] || 'Write a warm, professional follow-up.'
+
+  return channel === 'email'
+    ? `You are a top-producing real estate agent following up after an open house. Write a professional follow-up email.
+
+Channel: Email
+Lead Type: ${milestone}
+Client Name: ${name}
+Context: ${ctx}
+
+${guidance}
+
+Include a subject line, warm greeting, body under 200 words with a specific next step, and sign off as "— [Your Name]". Sound like a real, trusted local agent — not a template.`
+    : `You are a top-producing real estate agent following up after an open house. Write a concise follow-up text message.
+
+Channel: Text Message
+Lead Type: ${milestone}
+Client Name: ${name}
+Context: ${ctx}
+
+${guidance}
+
+Under 100 words. Warm and direct. End with a clear question or next step. Sign as "— [Your Name]". No subject line. Sound like a real agent, not a template.`
+}
+
 export default function ClientComms() {
   const [channel, setChannel] = useState('email')
   const [milestone, setMilestone] = useState('')
+  const [milestoneGroup, setMilestoneGroup] = useState('')
   const [clientName, setClientName] = useState('')
   const [context, setContext] = useState('')
-  const { result, loading, error, generate } = useAI()
+  const { result, loading, error, generate, regenerate, generationId } = useAI()
+
+  function handleMilestoneClick(item, group) {
+    const selecting = milestone !== item
+    setMilestone(selecting ? item : '')
+    setMilestoneGroup(selecting ? group : '')
+  }
 
   function handleGenerate() {
     if (!milestone) return
@@ -63,7 +124,9 @@ export default function ClientComms() {
     const ctx = context.trim() || 'None provided'
 
     let prompt
-    if (channel === 'email') {
+    if (milestoneGroup === 'Open House') {
+      prompt = buildOpenHousePrompt(channel, milestone, name, ctx)
+    } else if (channel === 'email') {
       prompt = `You are a top-producing real estate agent. Write a professional email for this transaction milestone.
 
 Channel: Email
@@ -119,7 +182,7 @@ Sound like a trusted advisor who is on top of every detail of this deal — not 
               <button
                 key={item}
                 className={`milestone-btn${milestone === item ? ' selected' : ''}`}
-                onClick={() => setMilestone(milestone === item ? '' : item)}
+                onClick={() => handleMilestoneClick(item, group.stage)}
               >
                 {item}
               </button>
@@ -160,7 +223,13 @@ Sound like a trusted advisor who is on top of every detail of this deal — not 
         {channel === 'email' ? 'Generate Email' : 'Generate Text Message'}
       </button>
 
-      <ResultBox result={result} loading={loading} error={error} />
+      <ResultBox
+        result={result}
+        loading={loading}
+        error={error}
+        generationId={generationId}
+        onRetone={regenerate}
+      />
     </div>
   )
 }

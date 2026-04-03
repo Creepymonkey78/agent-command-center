@@ -286,7 +286,7 @@ Be specific to the numbers provided. Reference actual dollar amounts. Write like
 
 export default function OfferAdvisor() {
   const [mode, setMode] = useState('initial')
-  const { result, loading, error, generate } = useAI()
+  const { result, loading, error, generate, regenerate, generationId } = useAI()
 
   return (
     <div>
@@ -313,7 +313,7 @@ export default function OfferAdvisor() {
         : <CounterofferForm onGenerate={generate} loading={loading} />
       }
 
-      <ResultBox result={result} loading={loading} error={error} />
+      <ResultBox result={result} loading={loading} error={error} generationId={generationId} onRetone={regenerate} />
     </div>
   )
 }

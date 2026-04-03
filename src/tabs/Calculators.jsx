@@ -4,6 +4,8 @@ import MortgageEstimator from './calculators/MortgageEstimator.jsx'
 import AffordabilityCalculator from './calculators/AffordabilityCalculator.jsx'
 import RentVsBuy from './calculators/RentVsBuy.jsx'
 import CommissionCalculator from './calculators/CommissionCalculator.jsx'
+import BuydownCalculator from './calculators/BuydownCalculator.jsx'
+import EquityEstimator from './calculators/EquityEstimator.jsx'
 
 const CALCS = [
   { id: 'netsheet', label: 'Net Sheet' },
@@ -11,6 +13,8 @@ const CALCS = [
   { id: 'affordability', label: 'Affordability' },
   { id: 'rentvsbuy', label: 'Rent vs. Buy' },
   { id: 'commission', label: 'Commission' },
+  { id: 'buydown', label: 'Buydown' },
+  { id: 'equity', label: 'Equity Estimator' },
 ]
 
 export default function Calculators() {
@@ -38,6 +42,8 @@ export default function Calculators() {
         {active === 'affordability' && <AffordabilityCalculator />}
         {active === 'rentvsbuy' && <RentVsBuy />}
         {active === 'commission' && <CommissionCalculator />}
+        {active === 'buydown' && <BuydownCalculator />}
+        {active === 'equity' && <EquityEstimator />}
       </div>
     </div>
   )
